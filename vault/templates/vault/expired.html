@@ -1,0 +1,108 @@
+{% extends 'vault/base.html' %}
+
+{% block extra_css %}
+<style>
+    .expired-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 40px 20px;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .error-icon {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background-color: #FFF0F0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 32px;
+        position: relative;
+    }
+
+    .error-icon svg {
+        width: 48px;
+        height: 48px;
+        stroke: #E53E3E;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+    }
+
+    .error-title {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 16px;
+        line-height: 1.2;
+    }
+
+    .error-subtitle {
+        font-size: 15px;
+        color: var(--text-light);
+        margin-bottom: 48px;
+        max-width: 280px;
+        line-height: 1.5;
+    }
+
+    .btn-return {
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 16px;
+        padding: 18px 24px;
+        font-size: 16px;
+        font-weight: 600;
+        width: 100%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        box-shadow: 0 8px 16px rgba(10, 58, 149, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .btn-return:hover {
+        background-color: var(--primary-hover);
+        transform: translateY(-2px);
+    }
+
+    .btn-return svg {
+        width: 18px;
+        height: 18px;
+        stroke: white;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="expired-container">
+    <div class="error-icon">
+        <svg viewBox="0 0 24 24">
+            <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+        </svg>
+    </div>
+
+    <h2 class="error-title">Link Expired</h2>
+    <p class="error-subtitle">This secure vault link has expired after 24 hours. The encrypted document is no longer
+        accessible.</p>
+
+    <a href="{% url 'vault:upload' %}" class="btn-return" style="text-decoration: none;">
+        <svg viewBox="0 0 24 24">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Return to Home
+    </a>
+</div>
+{% endblock %}

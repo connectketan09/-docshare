@@ -1,0 +1,360 @@
+{% extends 'vault/base.html' %}
+
+{% block extra_css %}
+<style>
+    .upload-card {
+        background-color: var(--card-bg);
+        border-radius: 24px;
+        padding: 40px 24px;
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+        border: 2px dashed #D2D8E8;
+        position: relative;
+        transition: all 0.3s ease;
+        margin-bottom: 24px;
+    }
+
+    .upload-card.dragover {
+        border-color: var(--primary);
+        background-color: #F8F9FC;
+        transform: scale(1.02);
+    }
+
+    .upload-icon-container {
+        width: 80px;
+        height: 80px;
+        background-color: #F0F4FF;
+        border-radius: 24px;
+        margin: 0 auto 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .upload-icon-container svg {
+        width: 32px;
+        height: 32px;
+        fill: var(--primary);
+    }
+
+    .plus-icon {
+        position: absolute;
+        bottom: -8px;
+        right: -8px;
+        width: 32px;
+        height: 32px;
+        background-color: var(--secondary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 8px rgba(46, 229, 197, 0.3);
+    }
+
+    .plus-icon svg {
+        width: 16px;
+        height: 16px;
+        stroke: white;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+    }
+
+    .upload-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--text-main);
+    }
+
+    .upload-subtitle {
+        font-size: 13px;
+        color: var(--text-light);
+        margin-bottom: 24px;
+    }
+
+    .browse-link {
+        color: var(--secondary-dark);
+        font-weight: 600;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    .info-card {
+        background-color: #F8F9FC;
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .info-icon {
+        width: 40px;
+        height: 40px;
+        background-color: white;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .info-icon svg {
+        width: 20px;
+        height: 20px;
+        fill: var(--primary);
+    }
+
+    .info-text h4 {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 4px;
+    }
+
+    .info-text p {
+        font-size: 12px;
+        color: var(--text-light);
+    }
+
+    #fileInput {
+        display: none;
+    }
+
+    .badge-wrap {
+        margin-top: 16px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .loader {
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-right: 8px;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Secure Upload</h1>
+<p class="page-subtitle">Select the high-value documents you wish to encrypt and share via our secure digital vault.</p>
+
+<div id="statusMessage"
+    style="display:none; padding: 12px; border-radius: 12px; margin-bottom: 16px; font-size: 14px; text-align: center; font-weight: 600;">
+</div>
+
+<div class="upload-card" id="dropZone">
+    <div class="upload-icon-container">
+        <svg viewBox="0 0 24 24">
+            <path
+                d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.36 8.04A5.994 5.994 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+        </svg>
+        <div class="plus-icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 5v14m-7-7h14" />
+            </svg>
+        </div>
+    </div>
+
+    <h3 class="upload-title">Drag and drop documents</h3>
+    <p class="upload-subtitle">OR<br><br><span class="browse-link" id="browseFiles">Browse Files</span></p>
+
+    <input type="file" id="fileInput" accept=".pdf" />
+    <div id="fileName"
+        style="font-size: 14px; font-weight: 600; color: var(--primary); margin-bottom: 16px; display: none;"></div>
+
+    <div class="badge-wrap">
+        <span class="badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0110 0v4"></path>
+            </svg>
+            AES-256 Encrypted
+        </span>
+    </div>
+</div>
+
+<div class="info-card">
+    <div class="info-icon">
+        <svg viewBox="0 0 24 24">
+            <path
+                d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+        </svg>
+    </div>
+    <div class="info-text">
+        <h4>PDF Supported</h4>
+        <p>Maximum file size of 50MB</p>
+    </div>
+</div>
+
+<div class="info-card">
+    <div class="info-icon">
+        <svg viewBox="0 0 24 24">
+            <path
+                d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+        </svg>
+    </div>
+    <div class="info-text">
+        <h4>Timed Access</h4>
+        <p>Documents auto-delete after 24h</p>
+    </div>
+</div>
+
+<button class="btn-primary" id="generateBtn" disabled style="margin-top: auto; position: relative;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="8" y1="12" x2="16" y2="12"></line>
+        <line x1="12" y1="8" x2="12" y2="16"></line>
+    </svg>
+    Generate QR
+</button>
+
+<div class="footer-text">
+    Ready for secure peer-to-peer exchange
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('fileName');
+        const generateBtn = document.getElementById('generateBtn');
+        const browseFiles = document.getElementById('browseFiles');
+        const statusMessage = document.getElementById('statusMessage');
+
+        let selectedFile = null;
+
+        function updateStatus(msg, isError = false) {
+            statusMessage.textContent = msg;
+            statusMessage.style.display = 'block';
+            statusMessage.style.backgroundColor = isError ? '#FFF0F0' : '#F0FFF4';
+            statusMessage.style.color = isError ? '#E53E3E' : '#38A169';
+        }
+
+        // CSRF Token helper
+        function getCSRF() {
+            return "{{ csrf_token }}";
+        }
+
+        // Browse files trigger
+        browseFiles.addEventListener('click', () => fileInput.click());
+
+        // Drag & Drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, e => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+        });
+
+        dropZone.addEventListener('drop', e => handleFiles(e.dataTransfer.files), false);
+        fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+
+                if (!isPdf) {
+                    showToast('Invalid File', 'Please upload a PDF document', true);
+                    return;
+                }
+
+                if (file.size > 50 * 1024 * 1024) {
+                    showToast('Too Large', 'Max file size is 50MB', true);
+                    return;
+                }
+
+                selectedFile = file;
+                fileNameDisplay.textContent = file.name;
+                fileNameDisplay.style.display = 'block';
+                generateBtn.disabled = false;
+
+                // Visual feedback that button is enabled
+                generateBtn.style.opacity = '1';
+                updateStatus('File selected: ' + file.name);
+            }
+        }
+
+        // THE CRITICAL BUTTON CLICK
+        generateBtn.addEventListener('click', async function (e) {
+            e.preventDefault();
+            console.log('Button clicked!');
+
+            if (!selectedFile) {
+                updateStatus('No file selected!', true);
+                return;
+            }
+
+            // UI Feedback
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<span class="loader"></span> PROCESSING...';
+            updateStatus('Starting secure upload...');
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                const response = await fetch('{% url "vault:api_upload" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCSRF()
+                    }
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error || 'Server error: ' + response.status);
+                }
+
+                const data = await response.json();
+                updateStatus('Encryption complete! Redirecting...');
+
+                // Final Redirect
+                const processingUrl = "{% url 'vault:processing' 'PLACEHOLDER' %}".replace('PLACEHOLDER', data.vault_id);
+                window.location.href = processingUrl;
+
+            } catch (err) {
+                console.error(err);
+                updateStatus('ERROR: ' + err.message, true);
+                showToast('Upload Failed', err.message, true);
+
+                // Reset button
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="8" y1="12" x2="16" y2="12"></line><line x1="12" y1="8" x2="12" y2="16"></line></svg> Generate QR';
+            }
+        });
+    });
+</script>
+{% endblock %}

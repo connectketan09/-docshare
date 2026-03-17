@@ -1,0 +1,267 @@
+{% extends 'vault/base.html' %}
+
+{% block extra_css %}
+<style>
+    .qr-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding-bottom: 24px;
+    }
+
+    .badge-top {
+        margin-bottom: 24px;
+        background-color: var(--secondary);
+        color: white;
+        text-transform: uppercase;
+        font-weight: 700;
+        font-size: 11px;
+        letter-spacing: 1px;
+        border-radius: 20px;
+        padding: 8px 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(46, 229, 197, 0.3);
+    }
+
+    .badge-top svg {
+        width: 14px;
+        height: 14px;
+        fill: white;
+    }
+
+    .qr-card {
+        background-color: var(--card-bg);
+        border-radius: 32px;
+        padding: 40px;
+        box-shadow: var(--shadow-md);
+        position: relative;
+        margin-bottom: 24px;
+        width: 100%;
+        max-width: 340px;
+    }
+
+    /* Corner frames simulating scanner */
+    .qr-frame {
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        border: 3px solid var(--secondary);
+    }
+
+    .top-left {
+        top: 24px;
+        left: 24px;
+        border-right: none;
+        border-bottom: none;
+        border-top-left-radius: 8px;
+    }
+
+    .top-right {
+        top: 24px;
+        right: 24px;
+        border-left: none;
+        border-bottom: none;
+        border-top-right-radius: 8px;
+    }
+
+    .bottom-left {
+        bottom: 24px;
+        left: 24px;
+        border-right: none;
+        border-top: none;
+        border-bottom-left-radius: 8px;
+    }
+
+    .bottom-right {
+        bottom: 24px;
+        right: 24px;
+        border-left: none;
+        border-top: none;
+        border-bottom-right-radius: 8px;
+    }
+
+    .qr-image-wrapper {
+        background-color: #6A8A34;
+        /* Green matching screenshot */
+        padding: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 8px;
+        margin-bottom: 32px;
+    }
+
+    .qr-image-wrapper img {
+        width: 120px;
+        height: 120px;
+        background-color: white;
+        padding: 4px;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .vault-id-label {
+        font-family: monospace;
+        font-size: 13px;
+        color: var(--text-light);
+        letter-spacing: 2px;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+
+    .expiry-text {
+        font-size: 12px;
+        color: #A0A8C0;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 16px;
+        width: 100%;
+        margin-bottom: 32px;
+    }
+
+    .btn-secondary {
+        flex: 1;
+        background-color: #F0F4FF;
+        color: var(--primary);
+        border: none;
+        border-radius: 16px;
+        padding: 18px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background-color: #E2EAF8;
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary svg {
+        width: 18px;
+        height: 18px;
+        stroke: var(--primary);
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+    }
+
+    .back-link {
+        color: var(--text-main);
+        font-weight: 600;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        background: none;
+        border: none;
+    }
+
+    .back-link svg {
+        width: 18px;
+        height: 18px;
+        stroke: var(--text-main);
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="qr-container">
+    <div class="badge-top">
+        <svg viewBox="0 0 24 24">
+            <path
+                d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+        </svg>
+        SECURE ENCRYPTION ACTIVE
+    </div>
+
+    <h1 class="page-title" style="color: var(--primary);">Your Secure QR</h1>
+    <p class="page-subtitle">Scan this code to instantly access and download your shared documents.</p>
+
+    <div class="qr-card">
+        <div class="qr-frame top-left"></div>
+        <div class="qr-frame top-right"></div>
+        <div class="qr-frame bottom-left"></div>
+        <div class="qr-frame bottom-right"></div>
+
+        <div class="qr-image-wrapper">
+            <img src="data:image/png;base64,{{ qr_b64 }}" alt="Secure QR Code">
+        </div>
+
+        <div class="vault-id-label">VAULT ID: {{ vault.vault_id }}</div>
+        <div style="font-size: 10px; color: #A0A8C0; margin-bottom: 16px; word-break: break-all;">{{ access_url }}</div>
+        <div class="expiry-text">Expires in 24 hours</div>
+    </div>
+
+    <div class="action-buttons">
+        <button class="btn-secondary" onclick="shareLink()">
+            <svg viewBox="0 0 24 24">
+                <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" />
+            </svg>
+            Share Link
+        </button>
+        <button class="btn-secondary" onclick="window.print()">
+            <svg viewBox="0 0 24 24">
+                <path
+                    d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" />
+            </svg>
+            Print
+        </button>
+    </div>
+
+    <a href="{% url 'vault:upload' %}" class="back-link" style="text-decoration: none;">
+        <svg viewBox="0 0 24 24">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Back to upload
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Show success toast on load
+        setTimeout(() => {
+            showToast('QR Generated Successfully', 'Ready for distribution');
+
+            // Customize toast for this screen to match design
+            const toast = document.getElementById('toast');
+            toast.style.backgroundColor = '#2C3246';
+        }, 500);
+    });
+
+    function shareLink() {
+        const url = '{{ access_url }}';
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'Secure Document Vault',
+                text: 'Here is your encrypted document vault link. It will expire in 24 hours.',
+                url: url,
+            })
+                .catch((error) => console.log('Error sharing', error));
+        } else {
+            // Fallback to copy to clipboard
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('Link Copied', 'Share link copied to clipboard');
+            });
+        }
+    }
+</script>
+{% endblock %}

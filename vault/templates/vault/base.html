@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocShare - Secure Upload</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0A3A95;
+            --primary-hover: #082F7B;
+            --secondary: #2EE5C5;
+            --secondary-dark: #1DBF9F;
+            --background: #F8F9FC;
+            --card-bg: #FFFFFF;
+            --text-main: #1C2442;
+            --text-light: #6A728A;
+            --border: #E8EAF1;
+            --shadow-sm: 0 4px 12px rgba(10, 58, 149, 0.05);
+            --shadow-md: 0 12px 24px rgba(10, 58, 149, 0.08);
+            --shadow-lg: 0 24px 48px rgba(10, 58, 149, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Subtle background glow */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -150px;
+            left: -150px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(46, 229, 197, 0.1) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .mobile-container {
+            width: 100%;
+            max-width: 414px; /* iPhone Max width */
+            min-height: 100vh;
+            background: var(--background);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            z-index: 1;
+            box-shadow: var(--shadow-lg);
+        }
+
+        @media (min-width: 480px) {
+            .mobile-container {
+                min-height: 850px;
+                border-radius: 32px;
+                margin: 40px 0;
+            }
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            padding-top: 20px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--text-main);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+        
+        .menu-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-main);
+        }
+
+        /* Titles */
+        .page-title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+
+        .page-subtitle {
+            text-align: center;
+            font-size: 15px;
+            color: var(--text-light);
+            line-height: 1.5;
+            margin-bottom: 32px;
+            padding: 0 16px;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 18px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 8px 16px rgba(10, 58, 149, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px rgba(10, 58, 149, 0.25);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary:disabled {
+            background-color: #B0B8CD;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #F0F4FF;
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge.success {
+            background-color: rgba(46, 229, 197, 0.15);
+            color: #0A8B74;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: absolute;
+            bottom: 32px;
+            left: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 100;
+        }
+        
+        .toast {
+            background-color: #2C3246;
+            color: white;
+            padding: 16px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            visibility: hidden;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .toast-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .toast-icon svg {
+            width: 16px;
+            height: 16px;
+            stroke: white;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+        
+        .toast-text h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .toast-text p {
+            font-size: 12px;
+            color: #A0A8C0;
+        }
+        
+        .toast-action {
+            color: var(--secondary);
+            font-size: 13px;
+            font-weight: 600;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        /* Footer Text */
+        .footer-text {
+            text-align: center;
+            font-size: 11px;
+            color: #A0A8C0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 24px;
+            font-weight: 600;
+        }
+
+        /* Main Content Area */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="mobile-container">
+        <header>
+            <button class="back-btn" onclick="history.back()"{% if request.path == '/' %} style="visibility:hidden"{% endif %}>
+                <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <div class="logo">DocShare</div>
+            <button class="menu-btn">
+                <svg viewBox="0 0 24 24"><path d="M12 13.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm0-7.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm0 15a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
+            </button>
+        </header>
+
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+
+        <div class="toast-container" id="toastContainer">
+            <div class="toast" id="toast">
+                <div class="toast-content">
+                    <div class="toast-icon">
+                        <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                    <div class="toast-text">
+                        <h4 id="toastTitle">Success</h4>
+                        <p id="toastMsg">Operation completed</p>
+                    </div>
+                </div>
+                <button class="toast-action" onclick="hideToast()">Dismiss</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showToast(title, message, isError = false) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastMsg').textContent = message;
+            
+            if (isError) {
+                toast.querySelector('.toast-icon').style.backgroundColor = '#E53E3E';
+                toast.querySelector('.toast-icon').innerHTML = '<svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+            } else {
+                toast.querySelector('.toast-icon').style.backgroundColor = 'var(--secondary)';
+                toast.querySelector('.toast-icon').innerHTML = '<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>';
+            }
+            
+            toast.classList.add('show');
+            setTimeout(hideToast, 5000);
+        }
+
+        function hideToast() {
+            document.getElementById('toast').classList.remove('show');
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
