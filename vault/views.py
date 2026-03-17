@@ -107,8 +107,16 @@ def qr_result_view(request, vault_id):
         
     access_url = request.build_absolute_uri(reverse('vault:access_file', args=[vault.vault_id]))
     
-    # If using localhost, swap it for the real local IP so mobile phones can scan correctly
-    if 'localhost' in access_url or '127.0.0.1' in access_url:
+    # Handle Render Deployment URL
+    render_url = os.environ.get('RENDER_EXTERNAL_URL')
+    if render_url:
+        # request.build_absolute_uri might use internal host, so we force the external one
+        if not access_url.startswith(render_url):
+            path = reverse('vault:access_file', args=[vault.vault_id])
+            access_url = f"{render_url.rstrip('/')}{path}"
+    
+    # If using localhost on local dev, swap it for the real local IP
+    elif 'localhost' in access_url or '127.0.0.1' in access_url:
         local_ip = get_local_ip()
         access_url = access_url.replace('localhost', local_ip).replace('127.0.0.1', local_ip)
     
