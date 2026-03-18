@@ -43,7 +43,7 @@ def upload_view(request):
     return render(request, 'vault/upload.html')
 
 
-# ✅ SECURE UPLOAD API (NO CSRF EXEMPT)
+# ✅ SECURE UPLOAD API
 @require_POST
 @login_required
 def api_upload(request):
@@ -52,12 +52,24 @@ def api_upload(request):
 
     file = request.FILES['file']
 
-    # ✅ File validation
+    # ✅ File size limit (5MB)
     if file.size > 5 * 1024 * 1024:
         return JsonResponse({'error': 'File too large (Max 5MB)'}, status=400)
 
+    # ✅ Extension check
     if not file.name.lower().endswith('.pdf'):
         return JsonResponse({'error': 'Only PDF files are allowed'}, status=400)
+
+    # ✅ Content-Type check
+    if file.content_type != 'application/pdf':
+        return JsonResponse({'error': 'Invalid file type'}, status=400)
+
+    # ✅ Magic bytes check (real PDF validation)
+    file_start = file.read(4)
+    if not file_start.startswith(b'%PDF'):
+        return JsonResponse({'error': 'Invalid PDF file'}, status=400)
+
+    file.seek(0)  # Reset pointer
 
     try:
         vault_id = str(uuid.uuid4())[:12]
@@ -136,6 +148,7 @@ def qr_result_view(request, vault_id):
 def access_file_view(request, vault_id):
     vault = get_object_or_404(FileVault, vault_id=vault_id)
 
+    # ✅ Auto delete expired
     if vault.is_expired:
         vault.encrypted_file.delete()
         vault.delete()
